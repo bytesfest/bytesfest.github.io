@@ -26,8 +26,8 @@ const handleMouseMove = (e: MouseEvent) => {
   ]
 }
 
-// Target date for grand opening: July 5, 2026
-const countdownTarget = '2026-07-05T00:00:00.000Z'
+// Target date for grand opening: June 5, 2026
+const countdownTarget = '2026-06-05T00:00:00.000Z'
 
 const heroTitle = ref<HTMLElement | null>(null)
 

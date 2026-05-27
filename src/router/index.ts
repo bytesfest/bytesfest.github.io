@@ -90,14 +90,14 @@ router.beforeEach((to, from, next) => {
     timeZone: 'Asia/Jakarta'
   })
   const currentDate = new Date(indonesiaDate)
-  const july5th2026 = new Date('2026-07-05T00:00:00.000Z')
+  const june5th2026 = new Date('2026-06-05T00:00:00.000Z')
   
-  // Check if it's before, on, or after July 5th, 2026
-  const isBeforeJuly5th = currentDate < july5th2026
-  const isAfterJuly5th = currentDate > july5th2026
+  // Check if it's before, on, or after June 5th, 2026
+  const isBeforeJune5th = currentDate < june5th2026
+  const isAfterJune5th = currentDate > june5th2026
   
-  // Before July 5th: Only allow countdown page
-  if (isBeforeJuly5th) {
+  // Before June 5th: Only allow countdown page
+  if (isBeforeJune5th) {
     if (to.name === 'countdown') {
       next()
       return
@@ -106,8 +106,8 @@ router.beforeEach((to, from, next) => {
     return
   }
   
-  // After July 5th: Countdown page not accessible
-  if (isAfterJuly5th) {
+  // After June 5th: Countdown page not accessible
+  if (isAfterJune5th) {
     if (to.name === 'countdown') {
       next({ name: 'home' })
       return
@@ -116,7 +116,7 @@ router.beforeEach((to, from, next) => {
     return
   }
   
-  // On July 5th: Allow all pages
+  // On June 5th: Allow all pages
   next()
 })
 
