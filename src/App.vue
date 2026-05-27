@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
-import { RouterView, useRouter } from 'vue-router'
+import { computed, onMounted, onUnmounted } from 'vue'
+import { RouterView, useRouter, useRoute } from 'vue-router'
 import Lenis from 'lenis'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -10,8 +10,13 @@ import Footer from '@/components/Footer.vue'
 gsap.registerPlugin(ScrollTrigger)
 
 const router = useRouter()
+const route = useRoute()
 let lenisInstance: Lenis | null = null
 let tickerHandler: ((time: number) => void) | null = null
+
+// Hide navbar and footer on countdown page
+const showNavbar = computed(() => route.name !== 'countdown')
+const showFooter = computed(() => route.name !== 'countdown')
 
 onMounted(() => {
   // Initialize Lenis smooth scroll
@@ -57,7 +62,7 @@ onUnmounted(() => {
 <template>
   <div class="flex flex-col min-h-screen bg-brand-cream/10">
     <!-- Navigation Bar -->
-    <Navbar />
+    <Navbar v-if="showNavbar" />
 
     <!-- Main Content Area with Page Transitions -->
     <main class="flex-grow">
@@ -69,7 +74,7 @@ onUnmounted(() => {
     </main>
 
     <!-- Footer -->
-    <Footer />
+    <Footer v-if="showFooter" />
   </div>
 </template>
 
