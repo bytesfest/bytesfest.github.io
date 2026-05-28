@@ -6,6 +6,8 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Countdown from '@/components/Countdown.vue'
 import SkeletonLoader from '@/components/SkeletonLoader.vue'
+import logoUns from '@/assets/logo_uns.webp'
+import logoPtik from '@/assets/logo_ptik.webp'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -299,7 +301,8 @@ const timelineItems = [
 ]
 
 const sponsors = [
-  'LOREM', 'IPSUM', 'DOLOR', 'SIT', 'AMET'
+  { name: 'UNS', logo: logoUns },
+  { name: 'PTIK', logo: logoPtik }
 ]
 </script>
 
@@ -531,26 +534,15 @@ const sponsors = [
         SPECIAL THANKS TO OUR SPONSORS
       </span>
       
-      <!-- Infinite marquee container -->
-      <div class="w-full relative flex overflow-x-hidden">
-        <div class="animate-marquee whitespace-nowrap flex gap-16 py-2 select-none">
-          <span 
-            v-for="(sp, idx) in sponsors" 
-            :key="idx" 
-            class="font-rexlia text-xl sm:text-2xl text-brand-blue/40 tracking-widest font-bold inline-block hover:text-brand-blue transition-colors duration-300"
-          >
-            {{ sp }}
-          </span>
-        </div>
-        <div class="animate-marquee2 absolute top-0 whitespace-nowrap flex gap-16 py-2 select-none">
-          <span 
-            v-for="(sp, idx) in sponsors" 
-            :key="idx" 
-            class="font-rexlia text-xl sm:text-2xl text-brand-blue/40 tracking-widest font-bold inline-block hover:text-brand-blue transition-colors duration-300"
-          >
-            {{ sp }}
-          </span>
-        </div>
+      <!-- Static sponsor container -->
+      <div class="w-full flex justify-center items-center gap-24 py-2">
+        <img 
+          v-for="(sp, idx) in sponsors" 
+          :key="idx" 
+          :src="sp.logo"
+          :alt="sp.name"
+          class="h-16 sm:h-20 object-contain opacity-70 hover:opacity-100 transition-opacity duration-300"
+        />
       </div>
     </section>
 
