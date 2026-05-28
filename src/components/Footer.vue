@@ -2,10 +2,18 @@
 import { Mail, Phone, Instagram } from 'lucide-vue-next'
 import logoUns from '@/assets/logo_uns.webp'
 import logoPtik from '@/assets/logo_ptik.webp'
+
+interface Props {
+  noMargin?: boolean
+}
+
+withDefaults(defineProps<Props>(), {
+  noMargin: false
+})
 </script>
 
 <template>
-  <footer class="w-full bg-[#f2f3ff] border-t border-[#005ea4]/10 rounded-t-[40px] px-8 py-16 md:py-20 md:px-16 mt-20 font-meiland">
+  <footer :class="['w-full bg-[#f2f3ff] border-t border-[#005ea4]/10 rounded-t-[40px] px-8 py-16 md:py-20 md:px-16 font-meiland', noMargin ? '' : 'mt-20']">
     <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16">
       
       <!-- Brand & Mission (6 columns on desktop) -->

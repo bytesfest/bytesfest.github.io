@@ -74,7 +74,7 @@ onUnmounted(() => {
     </main>
 
     <!-- Footer -->
-    <Footer v-if="showFooter" />
+    <Footer v-if="showFooter" :noMargin="route.name === 'kompetisi-detail'" />
   </div>
 </template>
 

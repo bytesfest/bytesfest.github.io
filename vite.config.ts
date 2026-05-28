@@ -17,5 +17,5 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
-  base: '/betfes_daniswara/',
+  base: '/betfes2026/',
 })

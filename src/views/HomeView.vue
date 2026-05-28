@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, nextTick } from 'vue'
 import { RouterLink } from 'vue-router'
 import { GraduationCap, Calendar, History, Code, FileText, Globe, Megaphone, ArrowRight } from 'lucide-vue-next'
 import { gsap } from 'gsap'
@@ -12,114 +12,208 @@ gsap.registerPlugin(ScrollTrigger)
 // Loading state
 const isLoading = ref(true)
 
-// Mouse tracking for interactive orbs
-const mouseX = ref(0)
-const mouseY = ref(0)
-const orbPositions = ref([
-  { x: 0, y: 0 },
-  { x: 0, y: 0 },
-  { x: 0, y: 0 },
-  { x: 0, y: 0 }
-])
-
-const handleMouseMove = (e: MouseEvent) => {
-  mouseX.value = (e.clientX / window.innerWidth - 0.5) * 2
-  mouseY.value = (e.clientY / window.innerHeight - 0.5) * 2
-  
-  // Update orb positions based on mouse
-  orbPositions.value = [
-    { x: mouseX.value * 30, y: mouseY.value * 30 },
-    { x: mouseX.value * -25, y: mouseY.value * 25 },
-    { x: mouseX.value * 20, y: mouseY.value * -35 },
-    { x: mouseX.value * -35, y: mouseY.value * -20 }
-  ]
-}
-
 // Calculate a dynamic target date for the countdown so that it always shows around 45 days in the future for demo purposes, or a fixed date.
 const countdownTarget = '2026-06-30T16:34:00.000Z'
 
-const heroTitle = ref<HTMLElement | null>(null)
 const targetSection = ref<HTMLElement | null>(null)
 const categorySection = ref<HTMLElement | null>(null)
 const timelineSection = ref<HTMLElement | null>(null)
 
-onMounted(() => {
+// Store ScrollTrigger instances for cleanup
+let scrollTriggers: any[] = []
+
+onMounted(async () => {
   // Simulate loading
-  setTimeout(() => {
+  setTimeout(async () => {
     isLoading.value = false
-  }, 800)
+    await nextTick() // wait for Vue to render the real content
 
-  // Add mouse move listener
-  window.addEventListener('mousemove', handleMouseMove)
-
-  // Hero Entrance Animations (using fromTo to prevent opacity locking bugs)
-  gsap.fromTo('.hero-fade', 
-    { opacity: 0, y: 30 },
-    {
-      opacity: 1,
-      y: 0,
-      duration: 1,
-      stagger: 0.2,
-      ease: 'power3.out'
-    }
-  )
-
-  // Target Peserta Scroll Animations (using fromTo to resolve scroll-reset opacity bugs)
-  if (targetSection.value) {
-    gsap.fromTo('.target-card', 
-      { opacity: 0, x: 50 },
+    // Hero Entrance Animations (using fromTo to prevent opacity locking bugs)
+    gsap.fromTo('.hero-fade', 
+      { opacity: 0, y: 30 },
       {
-        scrollTrigger: {
-          trigger: targetSection.value,
-          start: 'top 95%',
-          toggleActions: 'play none none none'
-        },
-        opacity: 1,
-        x: 0,
-        duration: 0.8,
-        stagger: 0.2,
-        ease: 'power2.out'
-      }
-    )
-  }
-
-  // Kategori Kompetisi Scroll Animations (using fromTo to resolve hidden category cards bug)
-  if (categorySection.value) {
-    gsap.fromTo('.category-card', 
-      { opacity: 0, y: 50 },
-      {
-        scrollTrigger: {
-          trigger: categorySection.value,
-          start: 'top 95%',
-          toggleActions: 'play none none none'
-        },
         opacity: 1,
         y: 0,
-        duration: 0.8,
-        stagger: 0.15,
+        duration: 1,
+        stagger: 0.2,
         ease: 'power3.out'
       }
     )
-  }
 
-  // Timeline Scroll Animations
-  if (timelineSection.value) {
-    gsap.fromTo('.timeline-item', 
-      { opacity: 0, scale: 0.9 },
-      {
-        scrollTrigger: {
-          trigger: timelineSection.value,
-          start: 'top 95%',
-          toggleActions: 'play none none none'
-        },
-        opacity: 1,
-        scale: 1,
-        duration: 0.6,
-        stagger: 0.15,
-        ease: 'back.out(1.7)'
-      }
-    )
-  }
+    // Target Peserta Scroll Animations (using fromTo to resolve scroll-reset opacity bugs)
+    if (targetSection.value) {
+      const trigger = ScrollTrigger.create({
+        trigger: targetSection.value,
+        start: 'top 80%',
+        toggleActions: 'play none none none'
+      })
+      scrollTriggers.push(trigger)
+      
+      gsap.fromTo('.target-card', 
+        { opacity: 0, x: 50 },
+        {
+          scrollTrigger: trigger,
+          opacity: 1,
+          x: 0,
+          duration: 0.8,
+          stagger: 0.2,
+          ease: 'power3.out'
+        }
+      )
+    }
+
+    // Kategori Kompetisi Scroll Animations (using fromTo to resolve hidden category cards bug)
+    if (categorySection.value) {
+      const trigger = ScrollTrigger.create({
+        trigger: categorySection.value,
+        start: 'top 80%',
+            toggleActions: 'play none none none'
+      })
+      scrollTriggers.push(trigger)
+      
+      gsap.fromTo('.category-card', 
+        { opacity: 0, y: 50 },
+        {
+          scrollTrigger: trigger,
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          stagger: 0.15,
+          ease: 'power3.out'
+        }
+      )
+    }
+
+    // Timeline Scroll Animations
+    if (timelineSection.value) {
+      // Desktop: Animate connecting line first (slide in from left)
+      const lineTrigger = ScrollTrigger.create({
+        trigger: timelineSection.value,
+        start: 'top 80%',
+        toggleActions: 'play none none none'
+      })
+      scrollTriggers.push(lineTrigger)
+      
+      gsap.fromTo('.timeline-line',
+        { opacity: 0, scaleX: 0, transformOrigin: 'left center' },
+        {
+          scrollTrigger: lineTrigger,
+          opacity: 1,
+          scaleX: 1,
+          duration: 0.8,
+          ease: 'power3.out'
+        }
+      )
+
+      // Desktop: Animate dots (scale up with slide)
+      const dotTrigger = ScrollTrigger.create({
+        trigger: timelineSection.value,
+        start: 'top 80%',
+        toggleActions: 'play none none none'
+      })
+      scrollTriggers.push(dotTrigger)
+      
+      gsap.fromTo('.timeline-dot',
+        { opacity: 0, scale: 0, y: -20 },
+        {
+          scrollTrigger: dotTrigger,
+          opacity: 1,
+          scale: 1,
+          y: 0,
+          duration: 0.5,
+          stagger: 0.1,
+          ease: 'power3.out'
+        }
+      )
+
+      // Desktop: Animate cards (slide up with fade)
+      const cardTrigger = ScrollTrigger.create({
+        trigger: timelineSection.value,
+        start: 'top 80%',
+        toggleActions: 'play none none none'
+      })
+      scrollTriggers.push(cardTrigger)
+      
+      gsap.fromTo('.timeline-card',
+        { opacity: 0, y: 40, scale: 0.95 },
+        {
+          scrollTrigger: cardTrigger,
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.6,
+          stagger: 0.15,
+          ease: 'power3.out'
+        }
+      )
+
+      // Mobile: Animate vertical line (slide down)
+      const verticalTrigger = ScrollTrigger.create({
+        trigger: timelineSection.value,
+        start: 'top 80%',
+        toggleActions: 'play none none none'
+      })
+      scrollTriggers.push(verticalTrigger)
+      
+      gsap.fromTo('.timeline-vertical',
+        { opacity: 0 },
+        {
+          scrollTrigger: verticalTrigger,
+          opacity: 1,
+          duration: 0.6,
+          ease: 'power3.out'
+        }
+      )
+
+      // Mobile: Animate dots (scale in)
+      const dotMobileTrigger = ScrollTrigger.create({
+        trigger: timelineSection.value,
+        start: 'top 80%',
+        toggleActions: 'play none none none'
+      })
+      scrollTriggers.push(dotMobileTrigger)
+      
+      gsap.fromTo('.timeline-dot-mobile',
+        { opacity: 0, scale: 0 },
+        {
+          scrollTrigger: dotMobileTrigger,
+          opacity: 1,
+          scale: 1,
+          duration: 0.4,
+          stagger: 0.1,
+          ease: 'power3.out'
+        }
+      )
+
+      // Mobile: Animate cards (slide in from left)
+      const cardMobileTrigger = ScrollTrigger.create({
+        trigger: timelineSection.value,
+        start: 'top 80%',
+        toggleActions: 'play none none none'
+      })
+      scrollTriggers.push(cardMobileTrigger)
+      
+      gsap.fromTo('.timeline-card-mobile',
+        { opacity: 0, x: -30, scale: 0.95 },
+        {
+          scrollTrigger: cardMobileTrigger,
+          opacity: 1,
+          x: 0,
+          scale: 1,
+          duration: 0.5,
+          stagger: 0.12,
+          ease: 'power3.out'
+        }
+      )
+    }
+  }, 800)
+})
+
+// Cleanup ScrollTrigger instances on unmount
+onUnmounted(() => {
+  scrollTriggers.forEach(trigger => trigger.kill())
+  scrollTriggers = []
+  ScrollTrigger.getAll().forEach(t => t.kill())
 })
 
 const categories = [
@@ -210,44 +304,31 @@ const sponsors = [
 </script>
 
 <template>
-  <div class="pt-28 font-sans relative overflow-hidden" @mousemove="handleMouseMove">
+  <div class="pt-28 font-sans relative overflow-hidden">
     <!-- Dynamic Background -->
     <div class="absolute inset-0 -z-10 overflow-hidden">
-      <!-- Interactive gradient orbs -->
+      <!-- Dynamic gradient orbs -->
       <div 
-        class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-brand-blue/35 blur-[130px] animate-float-1 animate-pulse-rotate cursor-pointer transition-all duration-500 hover:bg-brand-blue/45 hover:scale-110"
-        :style="{ transform: `translate(${orbPositions[0]?.x ?? 0}px, ${orbPositions[0]?.y ?? 0}px)` }"
-        @click="orbPositions[0] = { x: 0, y: 0 }"
+        class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-brand-blue/35 blur-[130px] animate-float-1 animate-pulse-rotate orb-color-cycle"
       ></div>
       <div 
-        class="absolute top-[20%] right-[-5%] w-[450px] h-[450px] rounded-full bg-brand-teal/30 blur-[110px] animate-float-2 animate-pulse-rotate cursor-pointer transition-all duration-500 hover:bg-brand-teal/40 hover:scale-110"
-        :style="{ transform: `translate(${orbPositions[1]?.x ?? 0}px, ${orbPositions[1]?.y ?? 0}px)` }"
-        @click="orbPositions[1] = { x: 0, y: 0 }"
+        class="absolute top-[20%] right-[-5%] w-[450px] h-[450px] rounded-full bg-brand-teal/30 blur-[110px] animate-float-2 animate-pulse-rotate orb-color-cycle"
       ></div>
       <div 
-        class="absolute bottom-[10%] left-[20%] w-[400px] h-[400px] rounded-full bg-brand-blue-light/25 blur-[90px] animate-float-3 animate-pulse-rotate cursor-pointer transition-all duration-500 hover:bg-brand-blue-light/35 hover:scale-110"
-        :style="{ transform: `translate(${orbPositions[2]?.x ?? 0}px, ${orbPositions[2]?.y ?? 0}px)` }"
-        @click="orbPositions[2] = { x: 0, y: 0 }"
+        class="absolute bottom-[10%] left-[20%] w-[400px] h-[400px] rounded-full bg-brand-blue-light/25 blur-[90px] animate-float-3 animate-pulse-rotate orb-color-cycle"
       ></div>
       <div 
-        class="absolute bottom-[-5%] right-[15%] w-[480px] h-[480px] rounded-full bg-brand-teal-light/28 blur-[120px] animate-float-4 animate-pulse-rotate cursor-pointer transition-all duration-500 hover:bg-brand-teal-light/38 hover:scale-110"
-        :style="{ transform: `translate(${orbPositions[3]?.x ?? 0}px, ${orbPositions[3]?.y ?? 0}px)` }"
-        @click="orbPositions[3] = { x: 0, y: 0 }"
+        class="absolute bottom-[-5%] right-[15%] w-[480px] h-[480px] rounded-full bg-brand-teal-light/28 blur-[120px] animate-float-4 animate-pulse-rotate orb-color-cycle"
       ></div>
       <!-- Third blob on left side between target peserta and kategori kompetisi -->
       <div 
-        class="absolute top-[45%] left-[-8%] w-[350px] h-[350px] rounded-full bg-purple-500/30 blur-[100px] animate-float-3 animate-pulse-rotate cursor-pointer transition-all duration-500 hover:bg-purple-500/40 hover:scale-110"
-        :style="{ transform: `translate(${orbPositions[2]?.x ?? 0}px, ${orbPositions[2]?.y ?? 0}px)` }"
-        @click="orbPositions[2] = { x: 0, y: 0 }"
+        class="absolute top-[45%] left-[-8%] w-[350px] h-[350px] rounded-full bg-purple-500/30 blur-[100px] animate-float-3 animate-pulse-rotate orb-color-cycle"
       ></div>
-      
-      <!-- Grid pattern overlay -->
-      <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTTAgNDBMMCAwTDQwIDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwNWVhNCIgc3Ryb2tlLW9wYWNpdHk9IjAuMDUiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
     </div>
     <!-- Hero Section -->
     <section v-if="!isLoading" class="max-w-6xl mx-auto px-6 sm:px-8 text-center flex flex-col items-center justify-center min-h-[80vh] gap-10 py-12">
-      <div ref="heroTitle" class="flex flex-col gap-6 max-w-4xl">
-        <h1 class="font-rexlia text-5xl sm:text-6xl md:text-7xl lg:text-8xl tracking-wider leading-none select-none hero-fade">
+      <div class="flex flex-col gap-6 max-w-4xl">
+        <h1 class="font-rexlia text-[11vw] sm:text-6xl md:text-7xl lg:text-8xl tracking-wider leading-none select-none hero-fade">
           <span class="bg-gradient-to-r from-brand-blue via-brand-blue-light to-brand-teal-light bg-clip-text text-transparent">BYTESFEST</span>
           <br>
           <span class="text-brand-navy">2026</span>
@@ -286,7 +367,7 @@ const sponsors = [
     </section>
 
     <!-- Target Peserta Section -->
-    <section v-if="!isLoading" re f="targetSection" class="max-w-6xl mx-auto px-6 py-16 sm:py-24">
+    <section v-if="!isLoading" ref="targetSection" class="max-w-6xl mx-auto px-6 py-16 sm:py-24">
       <div class="w-full border border-brand-blue/15 rounded-[32px] bg-white p-8 md:p-12 flex flex-col md:flex-row gap-10 md:gap-16 items-center shadow-sm">
         <div class="w-full md:w-1/2 flex flex-col gap-4">
           <h2 class="font-rexlia text-3xl md:text-4xl text-brand-navy tracking-wide uppercase leading-tight">
@@ -364,7 +445,7 @@ const sponsors = [
       <div class="relative hidden lg:block pt-16 pb-20">
         <!-- Connecting Line (Centered with the dots and responsive to N items) -->
         <div 
-          class="absolute h-[4px] bg-gradient-to-r from-brand-blue/30 via-brand-blue-light/70 to-brand-blue/30 rounded-full shadow-[0_0_8px_rgba(30,136,229,0.3)]"
+          class="timeline-line absolute h-[4px] bg-gradient-to-r from-brand-blue/30 via-brand-blue-light/70 to-brand-blue/30 rounded-full shadow-[0_0_8px_rgba(30,136,229,0.3)]"
           :style="{ 
             top: '114px', 
             left: (50 / timelineItems.length) + '%', 
@@ -388,7 +469,7 @@ const sponsors = [
 
             <!-- Dot on the line -->
             <div 
-              class="relative w-5 h-5 rounded-full border-2 border-white bg-brand-blue-light/10 shadow-md z-10 flex items-center justify-center transition-all duration-300 group-hover:scale-125 mb-6"
+              class="timeline-dot relative w-5 h-5 rounded-full border-2 border-white bg-brand-blue-light/10 shadow-md z-10 flex items-center justify-center transition-all duration-300 group-hover:scale-125 mb-6"
               :class="item.highlight ? 'bg-brand-teal-light border-brand-teal' : 'bg-brand-blue border-brand-blue-light'"
             >
               <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
@@ -396,7 +477,7 @@ const sponsors = [
 
             <!-- Title & Description inside rounded card -->
             <div 
-              class="p-5 rounded-2xl border border-brand-blue/10 bg-white shadow-sm w-full max-w-xs transition-all duration-300 group-hover:shadow-md"
+              class="timeline-card p-5 rounded-2xl border border-brand-blue/10 bg-white shadow-sm w-full max-w-xs transition-all duration-300 group-hover:shadow-md"
               :class="{ 'bg-brand-pale-teal/30 border-brand-teal-light shadow-md': item.highlight }"
             >
               <h4 class="font-rexlia text-xs text-brand-navy font-bold tracking-wide mb-1 leading-normal">
@@ -411,7 +492,7 @@ const sponsors = [
       </div>
 
       <!-- Vertical Timeline (Mobile) -->
-      <div class="lg:hidden flex flex-col gap-6 relative pl-8 before:absolute before:top-2 before:bottom-2 before:left-[13.5px] before:w-[3px] before:bg-brand-blue-light/30 before:rounded-full">
+      <div class="timeline-vertical lg:hidden flex flex-col gap-6 relative pl-8 before:absolute before:top-2 before:bottom-2 before:left-[13px] before:w-[3px] before:bg-brand-blue-light/30 before:rounded-full">
         <div 
           v-for="(item, idx) in timelineItems" 
           :key="idx"
@@ -419,7 +500,7 @@ const sponsors = [
         >
           <!-- Dot -->
           <div 
-            class="absolute top-1.5 left-[-26px] w-4.5 h-4.5 rounded-full border-2 border-white shadow-sm flex items-center justify-center z-10"
+            class="timeline-dot-mobile absolute top-1.5 left-[-26px] w-4.5 h-4.5 rounded-full border-2 border-white shadow-sm flex items-center justify-center z-10"
             :class="item.highlight ? 'bg-brand-teal-light border-brand-teal' : 'bg-brand-blue border-brand-blue-light'"
           >
             <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
@@ -430,7 +511,7 @@ const sponsors = [
           </span>
           
           <div 
-            class="p-4 rounded-xl border border-brand-blue/10 bg-white w-full"
+            class="timeline-card-mobile p-4 rounded-xl border border-brand-blue/10 bg-white w-full"
             :class="{ 'bg-brand-pale-teal/30 border-brand-teal-light shadow-sm': item.highlight }"
           >
             <h4 class="font-rexlia text-xs text-brand-navy font-bold tracking-wide mb-1 leading-normal">
@@ -533,18 +614,22 @@ const sponsors = [
 /* Float Animations for Dynamic Background */
 .animate-float-1 {
   animation: float1 20s ease-in-out infinite;
+  will-change: transform;
 }
 
 .animate-float-2 {
   animation: float2 25s ease-in-out infinite;
+  will-change: transform;
 }
 
 .animate-float-3 {
   animation: float3 18s ease-in-out infinite;
+  will-change: transform;
 }
 
 .animate-float-4 {
   animation: float4 22s ease-in-out infinite;
+  will-change: transform;
 }
 
 @keyframes float1 {
@@ -597,7 +682,24 @@ const sponsors = [
 
 /* Pulse and Rotate Animation */
 .animate-pulse-rotate {
-  animation: pulseRotate 8s ease-in-out infinite;
+  animation: pulseRotate 8s ease-in-out infinite, colorCycle 8s ease-in-out infinite;
+  will-change: transform, background-color;
+}
+
+/* Color Cycle Animation for Orbs */
+@keyframes colorCycle {
+  0%, 100% {
+    background-color: rgba(30, 136, 229, 0.35); /* Blue */
+  }
+  25% {
+    background-color: rgba(0, 150, 136, 0.30); /* Green */
+  }
+  50% {
+    background-color: rgba(0, 168, 204, 0.28); /* Bluish Green */
+  }
+  75% {
+    background-color: rgba(147, 51, 234, 0.30); /* Purple */
+  }
 }
 
 @keyframes pulseRotate {
@@ -615,19 +717,4 @@ const sponsors = [
   }
 }
 
-/* Skeleton Animation */
-.skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
 </style>
