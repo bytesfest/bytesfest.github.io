@@ -7,6 +7,8 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Navbar from '@/components/Navbar.vue'
 import Footer from '@/components/Footer.vue'
 
+import mascot1 from '@/assets/mascot_bytesfest_1.webp'
+
 gsap.registerPlugin(ScrollTrigger)
 
 const router = useRouter()
@@ -78,7 +80,9 @@ onUnmounted(() => {
 /* Base/Global transition animation classes */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
 }
 
 .fade-enter-from {
