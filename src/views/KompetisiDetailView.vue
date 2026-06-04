@@ -240,7 +240,7 @@ watch(
           <!-- Buttons -->
           <div class="flex flex-wrap items-center gap-4 detail-fade mt-2">
             <a
-              :href="BASE_URL + compData.registrationLink"
+              :href="compData.registrationLink"
               target="_blank"
               rel="noopener noreferrer"
               class="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-brand-blue text-white font-rexlia text-sm tracking-wider hover:bg-brand-blue-light hover:shadow-lg hover:shadow-brand-blue/20 hover:-translate-y-0.5 transition-all duration-300 shadow-sm"
@@ -264,7 +264,7 @@ watch(
               Pendaftaran
             </a>
             <a
-              :href="compData.guideBookLink"
+              :href="BASE_URL + 'guidebooks/' + compData.guideBookLink"
               target="_blank"
               class="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full border border-brand-blue text-brand-blue font-rexlia text-sm tracking-wider hover:bg-brand-blue/5 hover:-translate-y-0.5 transition-all duration-300"
             >
