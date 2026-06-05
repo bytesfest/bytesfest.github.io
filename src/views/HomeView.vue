@@ -9,6 +9,11 @@ import SkeletonLoader from '@/components/SkeletonLoader.vue'
 import logoUns from '@/assets/logo_uns.webp'
 import logoPtik from '@/assets/logo_ptik.webp'
 
+import logoArahKonveksi from '@/assets/logoarahkonveksi.webp'
+import logoEsther from '@/assets/logoesther.webp'
+import logoHycam from '@/assets/logohycam.webp'
+import logoKpriUns from '@/assets/logokpriuns.webp'
+
 gsap.registerPlugin(ScrollTrigger)
 
 // Loading state
@@ -20,6 +25,7 @@ const countdownTarget = '2026-06-30T16:59:59.000Z'
 const targetSection = ref<HTMLElement | null>(null)
 const categorySection = ref<HTMLElement | null>(null)
 const timelineSection = ref<HTMLElement | null>(null)
+const sponsorSection = ref<HTMLElement | null>(null)
 
 // Store ScrollTrigger instances for cleanup
 let scrollTriggers: any[] = []
@@ -208,8 +214,28 @@ onMounted(async () => {
         }
       )
     }
+    if (sponsorSection.value) {
+      const sponsorTrigger = ScrollTrigger.create({
+        trigger: sponsorSection.value,
+        start: 'top 85%',
+        toggleActions: 'play none none none'
+      })
+      scrollTriggers.push(sponsorTrigger)
+
+      gsap.fromTo('.sponsor-card', 
+        { opacity: 0, y: 30 },
+        {
+          scrollTrigger: sponsorTrigger,
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: 'power3.out'
+        }
+      )
+    }
   }, 800)
 })
+
 
 // Cleanup ScrollTrigger instances on unmount
 onUnmounted(() => {
@@ -300,9 +326,14 @@ const timelineItems = [
   }
 ]
 
+
 const sponsors = [
   { name: 'UNS', logo: logoUns },
-  { name: 'PTIK', logo: logoPtik }
+  { name: 'PTIK', logo: logoPtik },
+  { name: 'Arah Konveksi', logo: logoArahKonveksi },
+  { name: 'Esther', logo: logoEsther },
+  { name: 'Hycam', logo: logoHycam },
+  { name: 'KPRI UNS', logo: logoKpriUns }
 ]
 </script>
 
@@ -529,20 +560,54 @@ const sponsors = [
     </section>
 
     <!-- Sponsor Section -->
-    <section v-if="!isLoading" class="w-full bg-[#f2f3ff] py-10 overflow-hidden border-y border-[#005ea4]/10 flex flex-col items-center gap-6">
+    <!-- Sponsor Section dengan Efek Marquee Berjalan Otomatis -->
+    <!-- Sponsor Section dengan Efek Marquee Berjalan Otomatis -->
+    <section v-if="!isLoading" class="w-full bg-[#f2f3ff] py-12 overflow-hidden border-y border-[#005ea4]/10 flex flex-col items-center gap-6">
       <span class="font-sans text-xs md:text-sm font-semibold italic text-brand-navy/60 tracking-wider">
         SPECIAL THANKS TO OUR SPONSORS
       </span>
       
-      <!-- Static sponsor container -->
-      <div class="w-full flex justify-center items-center gap-24 py-2">
-        <img 
-          v-for="(sp, idx) in sponsors" 
-          :key="idx" 
-          :src="sp.logo"
-          :alt="sp.name"
-          class="h-16 sm:h-20 object-contain opacity-70 hover:opacity-100 transition-opacity duration-300"
-        />
+      <!-- Container Utama Marquee -->
+      <div class="w-full flex overflow-x-hidden relative group">
+        <!-- Deret Sponsor Pertama -->
+        <div class="flex items-center gap-8 sm:gap-12 px-4 whitespace-nowrap animate-marquee group-hover:[animation-play-state:paused]">
+          <div 
+            v-for="(sp, idx) in sponsors" 
+            :key="'a-' + idx" 
+            class="inline-flex items-center justify-center shrink-0 h-16 w-36 md:h-18 md:w-40 transition-all duration-300 hover:scale-105"
+            :class="[
+              sp.name === 'Arah Konveksi' ? 'scale-125' : '',
+              sp.name === 'Esther' ? 'scale-175 md:scale-190' : ''
+            ]"
+          >
+            <img 
+              :src="sp.logo"
+              :alt="sp.name"
+              class="max-h-full max-w-full object-contain opacity-80 hover:opacity-100 transition-all duration-300"
+              :class="{ 'brightness-0 contrast-200': sp.name === 'Hycam' }"
+            />
+          </div>
+        </div>
+
+        <!-- Deret Sponsor Kedua (Duplikat untuk menyambung tanpa putus) -->
+        <div class="flex items-center gap-8 sm:gap-12 px-4 whitespace-nowrap animate-marquee group-hover:[animation-play-state:paused]" aria-hidden="true">
+          <div 
+            v-for="(sp, idx) in sponsors" 
+            :key="'b-' + idx" 
+            class="inline-flex items-center justify-center shrink-0 h-16 w-36 md:h-18 md:w-40 transition-all duration-300 hover:scale-105"
+            :class="[
+              sp.name === 'Arah Konveksi' ? 'scale-125' : '',
+              sp.name === 'Esther' ? 'scale-175 md:scale-190' : ''
+            ]"
+          >
+            <img 
+              :src="sp.logo"
+              :alt="sp.name"
+              class="max-h-full max-w-full object-contain opacity-80 hover:opacity-100 transition-all duration-300"
+              :class="{ 'brightness-0 contrast-200': sp.name === 'Hycam' }"
+            />
+          </div>
+        </div>
       </div>
     </section>
 
